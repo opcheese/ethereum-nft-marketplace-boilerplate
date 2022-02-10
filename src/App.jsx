@@ -56,7 +56,7 @@ const App = ({ isServerInfo }) => {
 
 
 
-  const [inputValue, setInputValue] = useState("explore");
+  const [inputValue, setInputValue] = useState({name:"explore"});
 
   useEffect(() => {
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3();

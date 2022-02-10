@@ -1,18 +1,13 @@
 export const networkCollections = {
-  "0x13881": [
+  "0x4": [
     //Add Your Collections here
     {
       image:
         "https://lh3.googleusercontent.com/BWCni9INm--eqCK800BbRkL10zGyflxfPwTHt4XphMSWG3XZvPx1JyGdfU9vSor8K046DJg-Q8Y4ioUlWHiCZqgR_L00w4vcbA-w=s0",
-      name: "Test Mages",
-      addrs: "0x275d553f426355c20b134D944B5b28D31CDb83DA",
+      name: "Cryptonium bars",
+      addrs: "0x3957a4049E0941bC54d048d5d7a53584be367e23",
     },
-    {
-      image:
-        "https://ipfs.moralis.io:2053/ipfs/QmfLbpeVHxReWKNLaXTPcWiafi49eoAL4gRwMGuXtx2Eqe/images/14.png",
-      name: "Pixel Show",
-      addrs: "0xCA34404dD8Bd6537BE76F3A51B379F8949bD7973",
-    },
+
   ],
 
   "0x1": [

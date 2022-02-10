@@ -11,6 +11,8 @@ export const useNFTTokenIds = (addr) => {
   const [NFTTokenIds, setNFTTokenIds] = useState([]);
   const [totalNFTs, setTotalNFTs] = useState();
   const [fetchSuccess, setFetchSuccess] = useState(true);
+  const [fetching, setFetching] = useState(true);
+  
   const {
     fetch: getNFTTokenIds,
     data,
@@ -19,7 +21,7 @@ export const useNFTTokenIds = (addr) => {
   } = useMoralisWeb3ApiCall(token.getAllTokenIds, {
     chain: chainId,
     address: addr,
-    limit: 10,
+    limit: 100,
   });
 
   useEffect(async () => {
@@ -27,40 +29,40 @@ export const useNFTTokenIds = (addr) => {
       const NFTs = data.result;
       setTotalNFTs(data.total);
       setFetchSuccess(true);
+      let promises = [];
       for (let NFT of NFTs) {
         if (NFT?.metadata) {
           NFT.metadata = JSON.parse(NFT.metadata);
           NFT.image = resolveLink(NFT.metadata?.image);
         } else if (NFT?.token_uri) {
           try {
-            await fetch(NFT.token_uri)
-              .then((response) => response.json())
+            let ur = 'https://dbg-metadata-staging.ludentes.ru/metadata/'+ NFT.token_uri +"/"
+            let p = fetch(ur)
+              .then((response) => 
+              {
+                let res = response.json();
+                
+                console.log(res)
+                return res;
+              })
               .then((data) => {
-                NFT.image = resolveLink(data.image);
+                let dt = data
+                NFT.name = resolveLink(dt.name);
+                NFT.description = resolveLink(dt.description);
+                NFT.storageFees = resolveLink(dt.attributes[0].value);
+
+
               });
+            promises.push(p);
           } catch (error) {
             setFetchSuccess(false);
               
-/*          !!Temporary work around to avoid CORS issues when retrieving NFT images!!
-            Create a proxy server as per https://dev.to/terieyenike/how-to-create-a-proxy-server-on-heroku-5b5c
-            Replace <your url here> with your proxy server_url below
-            Remove comments :)
-
-              try {
-                await fetch(`<your url here>/${NFT.token_uri}`)
-                .then(response => response.json())
-                .then(data => {
-                  NFT.image = resolveLink(data.image);
-                });
-              } catch (error) {
-                setFetchSuccess(false);
-              }
-
- */
           }
         }
       }
+      await Promise.all(promises);
       setNFTTokenIds(NFTs);
+      setFetching(false)
     }
   }, [data]);
 
@@ -69,6 +71,7 @@ export const useNFTTokenIds = (addr) => {
     NFTTokenIds,
     totalNFTs,
     fetchSuccess,
+    fetching,
     error,
     isLoading,
   };
