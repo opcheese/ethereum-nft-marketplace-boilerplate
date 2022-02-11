@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useReducer } from "react";
 import { useMoralis,useMoralisQuery } from "react-moralis";
 import { Card, Image, Tooltip, Modal, Input, Alert, Spin, Button } from "antd";
 import { useNFTBalance } from "hooks/useNFTBalance";
@@ -22,6 +22,10 @@ const styles = {
 };
 
 function NFTBalance() {
+ 
+  const forceUpdate = ()=> window.location.reload();
+//  const [_, forceUpdate] = useReducer((x) => {console.log(123);return x + 1}, 0);
+
   const { chainId, marketAddress, contractABI, walletAddress } = useMoralisDapp();
   const { NFTBalance, fetchSuccess } = useNFTBalance({walletAddress});
   //const { NFTOnSaleBalance, fetchOnSaleSuccess } = useNFTBalance({walletAddress:marketAddress});
@@ -37,13 +41,14 @@ function NFTBalance() {
 
   const [price, setPrice] = useState(1);
   const [loading, setLoading] = useState(false);
+  
   const contractProcessor = useWeb3ExecuteFunction();
   const contractABIJson = JSON.parse(contractABI);
   const listItemFunction = "createMarketItem";
-  const delistItemFunction = "removeMarketItem";
+  const delistItemFunction = "cancelMarketItem";
 
   const ItemImage = Moralis.Object.extend("ItemImages");
-  const queryMarketItems = useMoralisQuery("MarketItemsNew");
+  const queryMarketItems = useMoralisQuery("MarketItemCreatedii");
 
   const fetchMarketItems = JSON.parse(
     JSON.stringify(queryMarketItems.data, [
@@ -98,15 +103,16 @@ function NFTBalance() {
 
   async function delist(nft) {
     setLoading(true);
-    //todo: BN
+    console.log(nft)
+   
   
     const ops = {
       contractAddress: marketAddress,
       functionName: delistItemFunction,
       abi: contractABIJson,
       params: {
-        nftContract: nft.token_address,
-        tokenId: nft.token_id,
+        itemId: nft.itemId,
+       
       },
     };
 
@@ -117,7 +123,7 @@ function NFTBalance() {
         setLoading(false);
         setCancelVisibility(false);
         
-        succList();
+        succCancel();
       },
       onError: (error) => {
         setLoading(false);
@@ -836,11 +842,6 @@ function NFTBalance() {
     await contractProcessor.fetch({
       params: ops,
       throwOnError: true,
-      onComplete: () => {
-        console.log("Approval completed");
-        setLoading(false);
-        failApprove();
-      },
       onSuccess: () => {
         console.log("Approval Received");
         setLoading(false);
@@ -860,18 +861,31 @@ function NFTBalance() {
   };
 
   const handleRemoveFromSaleClick = (nft) => {
-    setNftToSend(nft);
+    setNftToCancel(nft);
     setCancelVisibility(true);
   };
 
   function succList() {
-    let secondsToGo = 5;
+    let secondsToGo = 15;
     const modal = Modal.success({
       title: "Success!",
-      content: `Your NFT was listed on the marketplace`,
+      content: `Your NFT was listed on the marketplace! Please allow time for blockchain transaction to be confirmed`,
     });
     setTimeout(() => {
       modal.destroy();
+      forceUpdate();
+    }, secondsToGo * 1000);
+  }
+
+  function succCancel() {
+    let secondsToGo = 15;
+    const modal = Modal.success({
+      title: "Success!",
+      content: `Your NFT was delisted! Please allow time for blockchain transaction to be confirmed`,
+    });
+    setTimeout(() => {
+      modal.destroy();
+      forceUpdate();
     }, secondsToGo * 1000);
   }
 
@@ -894,6 +908,7 @@ function NFTBalance() {
     });
     setTimeout(() => {
       modal.destroy();
+      //forceRerender();
     }, secondsToGo * 1000);
   }
 
@@ -954,9 +969,14 @@ function NFTBalance() {
 
   let filteredOnSale = NFTs.map(x=>getMarketItemById(x));
 
+  let NFTBalanceOrdered = null;
+  if (NFTBalance)
+   NFTBalanceOrdered= NFTBalance.sort((a, b) =>  a.name.localeCompare( b.name)); 
 
   return (
     <>
+      <div style={{display: 'block'}}>
+      <h3 style={styles.NFTs}>My tokens</h3>
       <div style={styles.NFTs}>
         {contractABIJson.noContractDeployed && (
           <>
@@ -976,8 +996,8 @@ function NFTBalance() {
             <div style={{ marginBottom: "10px" }}></div>
           </>
         )}
-        {NFTBalance &&
-          NFTBalance.map((nft, index) => (
+        {NFTBalanceOrdered &&
+          NFTBalanceOrdered.map((nft, index) => (
             <Card
               hoverable
               actions={[
@@ -985,7 +1005,7 @@ function NFTBalance() {
                   <FileSearchOutlined
                     onClick={() =>
                       window.open(
-                        `${getExplorer(chainId)}token/${nft.nftContract}?a=${nft.tokenId}`,
+                        `${getExplorer(chainId)}token/${nft.token_address}?a=${nft.token_id}`,
                         "_blank"
                       )
                     }
@@ -1013,6 +1033,7 @@ function NFTBalance() {
           ))}
       </div>
 
+      <h3 style={styles.NFTs}> My Tokens on Sale</h3>
       <div style={styles.NFTs}>
       
       
@@ -1049,10 +1070,11 @@ function NFTBalance() {
             >
               <Meta title={nft.name} description={nft.description} />
               <p>Storage fees:{nft.storageFees}</p>
+              <p>Listing price: {Moralis.Units.FromWei(nft.price)} Eth</p>
             </Card>
           ))}
       </div>
-
+      </div>
       <Modal
         title={`List ${nftToSend?.name} #${nftToSend?.token_id} For Sale`}
         visible={visible}
@@ -1072,7 +1094,7 @@ function NFTBalance() {
         ]}
       >
         <Spin spinning={loading}>
-          <img
+          {/* <img
             src={`${nftToSend?.image}`}
             style={{
               width: "250px",
@@ -1080,10 +1102,10 @@ function NFTBalance() {
               borderRadius: "10px",
               marginBottom: "15px",
             }}
-          />
+          /> */}
           <Input
             autoFocus
-            placeholder="Listing Price in MATIC"
+            placeholder="Listing Price in Eth"
             onChange={(e) => setPrice(e.target.value)}
           />
         </Spin>
@@ -1091,7 +1113,7 @@ function NFTBalance() {
 
 
       <Modal
-        title={`Delist ${nftToCancel?.name} #${nftToCancel?.token_id} from  Sale`}
+        title={`Delist ${nftToCancel?.name} #${nftToCancel?.tokenId}`}
         visible={cancelVisible}
         onCancel={() => setCancelVisibility(false)}
         onOk={() => list(nftToCancel, price)}
@@ -1101,21 +1123,13 @@ function NFTBalance() {
             Cancel
           </Button>,
       
-          <Button onClick={() => delist(nftToSend)} type="primary">
+          <Button onClick={() => delist(nftToCancel)} type="primary">
             Delist
           </Button>
         ]}
       >
         <Spin spinning={loading}>
-          <img
-            src={`${nftToCancel?.image}`}
-            style={{
-              width: "250px",
-              margin: "auto",
-              borderRadius: "10px",
-              marginBottom: "15px",
-            }}
-          />
+         
          
         </Spin>
       </Modal>

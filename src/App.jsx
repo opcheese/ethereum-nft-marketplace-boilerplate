@@ -53,9 +53,20 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading } =
     useMoralis();
+  //const [currLoc, setCurrLoc] = useState("nftMarket");
+  let currLoc = "nft";
+  if (window.location.pathname.includes("nftBalance")) {
+    currLoc = "nft";
+  }
+  if (window.location.pathname.includes("Transactions")) {
+    currLoc ="transactions";
+  }
+  if (window.location.pathname.includes("NFTMarketPlace")) {
+    currLoc = "nftMarket";
+  }
 
 
-
+  
   const [inputValue, setInputValue] = useState({name:"explore"});
 
   useEffect(() => {
@@ -68,7 +79,7 @@ const App = ({ isServerInfo }) => {
       <Router>
         <Header style={styles.header}>
           <Logo />
-          <SearchCollections setInputValue={setInputValue}/>
+          {/* <SearchCollections setInputValue={setInputValue}/> */}
           <Menu
             theme="light"
             mode="horizontal"
@@ -79,9 +90,9 @@ const App = ({ isServerInfo }) => {
               marginLeft: "50px",
               width: "100%",
             }}
-            defaultSelectedKeys={["nftMarket"]}
+            defaultSelectedKeys={[currLoc]}
           >
-            <Menu.Item key="nftMarket" onClick={() => setInputValue("explore")} >
+            <Menu.Item key="nftMarket" onClick={() => setInputValue({name:"explore"})} >
               <NavLink to="/NFTMarketPlace">🛒 Explore Market</NavLink>
             </Menu.Item>
             <Menu.Item key="nft">
@@ -109,43 +120,11 @@ const App = ({ isServerInfo }) => {
               <NFTMarketTransactions />
             </Route>
           </Switch>
-          <Redirect to="/NFTMarketPlace" />
+         
         </div>
       </Router>
       <Footer style={{ textAlign: "center" }}>
-        <Text style={{ display: "block" }}>
-          ⭐️ Please star this{" "}
-          <a
-            href="https://github.com/ethereum-boilerplate/ethereum-boilerplate/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            boilerplate
-          </a>
-          , every star makes us very happy!
-        </Text>
-
-        <Text style={{ display: "block" }}>
-          🙋 You have questions? Ask them on the {""}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://forum.moralis.io/t/ethereum-boilerplate-questions/3951/29"
-          >
-            Moralis forum
-          </a>
-        </Text>
-
-        <Text style={{ display: "block" }}>
-          📖 Read more about{" "}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://moralis.io?utm_source=boilerplatehosted&utm_medium=todo&utm_campaign=ethereum-boilerplat"
-          >
-            Moralis
-          </a>
-        </Text>
+      
       </Footer>
     </Layout>
   );
