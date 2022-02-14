@@ -22,11 +22,11 @@ const styles = {
 };
 
 const menuItems = [
-  {
-    key: "0x1",
-    value: "Ethereum",
-    icon: <ETHLogo />,
-  },
+  // {
+  //   key: "0x1",
+  //   value: "Ethereum",
+  //   icon: <ETHLogo />,
+  // },
   // {
   //   key: "0x539",
   //   value: "Local Chain",
@@ -108,8 +108,9 @@ function Chains() {
 
   return (
     <div>
-      <Dropdown overlay={menu} trigger={["click"]}>
+      <Dropdown disabled="true" overlay={menu} trigger={["click"]}>
         <Button
+          
           key={selected?.key}
           icon={selected?.icon}
           style={{ ...styles.button, ...styles.item }}

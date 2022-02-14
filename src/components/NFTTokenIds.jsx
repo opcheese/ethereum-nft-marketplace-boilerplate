@@ -69,7 +69,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
   const nativeName = getNativeByChain(chainId);
   const contractABIJson = JSON.parse(contractABI);
   const { Moralis } = useMoralis();
-  const queryMarketItems = useMoralisQuery("MarketItemCreatedii");
+  const queryMarketItems = useMoralisQuery("ActiveMarketItems");
   const fetchMarketItems = JSON.parse(
     JSON.stringify(queryMarketItems.data, [
       "objectId",
@@ -109,7 +109,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
         console.log("success");
         setLoading(false);
         setVisibility(false);
-        updateSoldMarketItem();
+        //updateSoldMarketItem();
         succPurchase();
       },
       onError: (error) => {
@@ -130,7 +130,7 @@ function NFTTokenIds({ inputValue, setInputValue }) {
     let secondsToGo = 5;
     const modal = Modal.success({
       title: "Success!",
-      content: `You have purchased this NFT`,
+      content: `You have purchased this NFT! Please allow time for blockchain transaction to be confirmed (about 3 min)`,
     });
     setTimeout(() => {
       modal.destroy();
@@ -148,24 +148,24 @@ function NFTTokenIds({ inputValue, setInputValue }) {
     }, secondsToGo * 1000);
   }
 
-  async function updateSoldMarketItem() {
-    const id = getMarketItem(nftToBuy).objectId;
-    const marketList = Moralis.Object.extend("MarketItemCreatedii");
-    const query = new Moralis.Query(marketList);
-    await query.get(id).then((obj) => {
-      obj.set("sold", true);
-      obj.set("owner", walletAddress);
-      obj.save();
-    });
-  }
+  // async function updateSoldMarketItem() {
+  //   const id = getMarketItem(nftToBuy).objectId;
+  //   const marketList = Moralis.Object.extend("MarketItemCreatedii");
+  //   const query = new Moralis.Query(marketList);
+  //   await query.get(id).then((obj) => {
+  //     obj.set("sold", true);
+  //     obj.set("owner", walletAddress);
+  //     obj.save();
+  //   });
+  // }
 
   const getMarketItem = (nft) => {
     const result = fetchMarketItems?.find(
       (e) =>
         e.nftContract === nft?.token_address &&
-        e.tokenId === nft?.token_id &&
-        e.sold === false &&
-        e.confirmed === true
+        e.tokenId === nft?.token_id //&&
+        // e.sold === false &&
+        // e.confirmed === true
     );
     return result;
   };

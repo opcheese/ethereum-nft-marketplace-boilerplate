@@ -30,6 +30,7 @@ export const useNFTTokenIds = (addr) => {
       setTotalNFTs(data.total);
       setFetchSuccess(true);
       let promises = [];
+      setFetching(true)
       for (let NFT of NFTs) {
         if (NFT?.metadata) {
           NFT.metadata = JSON.parse(NFT.metadata);
@@ -56,7 +57,7 @@ export const useNFTTokenIds = (addr) => {
             promises.push(p);
           } catch (error) {
             setFetchSuccess(false);
-              
+            setFetching(false)
           }
         }
       }

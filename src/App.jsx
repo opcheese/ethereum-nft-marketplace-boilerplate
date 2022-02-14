@@ -11,13 +11,16 @@ import Account from "components/Account";
 import Chains from "components/Chains";
 import NFTBalance from "components/NFTBalance";
 import NFTTokenIds from "components/NFTTokenIds";
-import { Menu, Layout} from "antd";
+import { Menu, Layout, Button,Modal} from "antd";
 import SearchCollections from "components/SearchCollections";
 import "antd/dist/antd.css";
 import NativeBalance from "components/NativeBalance";
 import "./style.css";
 import Text from "antd/lib/typography/Text";
 import NFTMarketTransactions from "components/NFTMarketTransactions";
+import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
+import { useWeb3ExecuteFunction } from "react-moralis";
+
 const { Header, Footer } = Layout;
 
 const styles = {
@@ -58,9 +61,9 @@ const App = ({ isServerInfo }) => {
   if (window.location.pathname.includes("nftBalance")) {
     currLoc = "nft";
   }
-  if (window.location.pathname.includes("Transactions")) {
-    currLoc ="transactions";
-  }
+  // if (window.location.pathname.includes("Transactions")) {
+  //   currLoc ="transactions";
+  // }
   if (window.location.pathname.includes("NFTMarketPlace")) {
     currLoc = "nftMarket";
   }
@@ -73,6 +76,75 @@ const App = ({ isServerInfo }) => {
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isWeb3Enabled]);
+
+  const { marketAddress,  walletAddress,tokenAddress } = useMoralisDapp();
+  const contractProcessor = useWeb3ExecuteFunction();
+  async function approveAll(nft) {
+   console.log('main approval')
+    const ops = {
+      contractAddress: nft.tokenAddress,
+      functionName: "setApprovalForAll",
+      abi: [    {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "approved",
+            "type": "bool"
+          }
+        ],
+        "name": "setApprovalForAll",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+  ],
+      params: {
+        operator: nft.marketAddress,
+        approved: true
+      },
+    };
+
+    await contractProcessor.fetch({
+      params: ops,
+      throwOnError: true,
+      onSuccess: () => {
+        console.log("Approval Received");
+    
+        succApprove();
+      },
+      onError: (error) => {
+        console.log(error)
+      
+        failApprove();
+      },
+    });
+  }
+
+  function succApprove() {
+    let secondsToGo = 5;
+    const modal = Modal.success({
+      title: "Success!",
+      content: `Approval is now set, you may list your NFT`,
+    });
+    setTimeout(() => {
+      modal.destroy();
+    }, secondsToGo * 1000);
+  }
+  function failApprove() {
+    let secondsToGo = 5;
+    const modal = Modal.error({
+      title: "Error!",
+      content: `There was a problem with setting approval`,
+    });
+    setTimeout(() => {
+      modal.destroy();
+    }, secondsToGo * 1000);
+  }
 
   return (
     <Layout style={{ height: "100vh", overflow: "auto" }}>
@@ -98,14 +170,18 @@ const App = ({ isServerInfo }) => {
             <Menu.Item key="nft">
               <NavLink to="/nftBalance">🖼 Your Collection</NavLink>
             </Menu.Item>
-            <Menu.Item key="transactions">
+            {/* <Menu.Item key="transactions">
               <NavLink to="/Transactions">📑 Your Transactions</NavLink>
-            </Menu.Item>
+            </Menu.Item> */}
           </Menu>
           <div style={styles.headerRight}>
             <Chains />
             <NativeBalance />
             <Account />
+            {isAuthenticated && isWeb3Enabled &&( <Button onClick={()=>approveAll({
+              marketAddress,
+              tokenAddress,
+            })}> Approve</Button>)}
           </div>
         </Header>
         <div style={styles.content}>
@@ -116,9 +192,9 @@ const App = ({ isServerInfo }) => {
             <Route path="/NFTMarketPlace">
               <NFTTokenIds inputValue={inputValue} setInputValue={setInputValue}/>
             </Route>
-            <Route path="/Transactions">
+            {/* <Route path="/Transactions">
               <NFTMarketTransactions />
-            </Route>
+            </Route> */}
           </Switch>
          
         </div>

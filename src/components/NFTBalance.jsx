@@ -48,7 +48,7 @@ function NFTBalance() {
   const delistItemFunction = "cancelMarketItem";
 
   const ItemImage = Moralis.Object.extend("ItemImages");
-  const queryMarketItems = useMoralisQuery("MarketItemCreatedii");
+  const queryMarketItems = useMoralisQuery("ActiveMarketItems");
 
   const fetchMarketItems = JSON.parse(
     JSON.stringify(queryMarketItems.data, [
@@ -64,7 +64,7 @@ function NFTBalance() {
       "confirmed",
     ])
   );
-  let tokenIds = fetchMarketItems.filter((x)=>x.seller==walletAddress && !x.sold).map(x=>x.tokenId);
+  let tokenIds = fetchMarketItems.filter((x)=>x.seller==walletAddress).map(x=>x.tokenId);
 
   const { NFTs } = useNFTMetadata(tokenIds);
   
@@ -94,6 +94,8 @@ function NFTBalance() {
         succList();
       },
       onError: (error) => {
+        console.log(error)
+
         setLoading(false);
         failList();
       },
@@ -126,6 +128,8 @@ function NFTBalance() {
         succCancel();
       },
       onError: (error) => {
+        console.log(error)
+
         setLoading(false);
         failCancel();
       },
@@ -134,683 +138,7 @@ function NFTBalance() {
 
   async function approveAll(nft) {
     setLoading(true);
-    const abi =  [
-      {
-        "inputs": [],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "account",
-            "type": "address"
-          }
-        ],
-        "name": "AddedToBlacklist",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "AddedToFreezelist",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "approved",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "Approval",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "operator",
-            "type": "address"
-          },
-          {
-            "indexed": false,
-            "internalType": "bool",
-            "name": "approved",
-            "type": "bool"
-          }
-        ],
-        "name": "ApprovalForAll",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "previousOwner",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "newOwner",
-            "type": "address"
-          }
-        ],
-        "name": "OwnershipTransferred",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "account",
-            "type": "address"
-          }
-        ],
-        "name": "RemovedFromBlacklist",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "RemovedFromFreezelist",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "from",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "Transfer",
-        "type": "event"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "_address",
-            "type": "address"
-          }
-        ],
-        "name": "addToBlacklist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "_tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "addToFreezelist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "approve",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          }
-        ],
-        "name": "balanceOf",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "baseURI",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "name": "blacklist",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "burn",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "name": "freezelist",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "getApproved",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "operator",
-            "type": "address"
-          }
-        ],
-        "name": "isApprovedForAll",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "_address",
-            "type": "address"
-          }
-        ],
-        "name": "isBlacklisted",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "_tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "isFrozen",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "ref",
-            "type": "string"
-          }
-        ],
-        "name": "mint",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "name",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "owner",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "ownerOf",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "_address",
-            "type": "address"
-          }
-        ],
-        "name": "removeFromBlacklist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "_tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "removeFromFreezelist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "renounceOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "from",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "safeTransferFrom",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "from",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "_data",
-            "type": "bytes"
-          }
-        ],
-        "name": "safeTransferFrom",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "operator",
-            "type": "address"
-          },
-          {
-            "internalType": "bool",
-            "name": "approved",
-            "type": "bool"
-          }
-        ],
-        "name": "setApprovalForAll",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "bytes4",
-            "name": "interfaceId",
-            "type": "bytes4"
-          }
-        ],
-        "name": "supportsInterface",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "symbol",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "index",
-            "type": "uint256"
-          }
-        ],
-        "name": "tokenByIndex",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "index",
-            "type": "uint256"
-          }
-        ],
-        "name": "tokenOfOwnerByIndex",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "tokenURI",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "totalSupply",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "from",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          }
-        ],
-        "name": "transferFrom",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "newOwner",
-            "type": "address"
-          }
-        ],
-        "name": "transferOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
-    ]
-  
- 
-    
+   
     const ops = {
       contractAddress: nft.token_address,
       functionName: "setApprovalForAll",
@@ -849,6 +177,7 @@ function NFTBalance() {
         succApprove();
       },
       onError: (error) => {
+        console.log(error)
         setLoading(false);
         failApprove();
       },
@@ -869,7 +198,7 @@ function NFTBalance() {
     let secondsToGo = 15;
     const modal = Modal.success({
       title: "Success!",
-      content: `Your NFT was listed on the marketplace! Please allow time for blockchain transaction to be confirmed`,
+      content: `Your NFT was listed on the marketplace! Please allow time for blockchain transaction to be confirmed (about 3 min)`,
     });
     setTimeout(() => {
       modal.destroy();
@@ -881,7 +210,7 @@ function NFTBalance() {
     let secondsToGo = 15;
     const modal = Modal.success({
       title: "Success!",
-      content: `Your NFT was delisted! Please allow time for blockchain transaction to be confirmed`,
+      content: `Your NFT was delisted! Please allow time for blockchain transaction to be confirmed (about 3 min)`,
     });
     setTimeout(() => {
       modal.destroy();
@@ -949,9 +278,9 @@ function NFTBalance() {
     const result = fetchMarketItems?.find(
       (e) =>
         e.nftContract === nft?.token_address &&
-        e.tokenId === nft?.token_id &&
-        e.sold === false &&
-        e.confirmed === true
+        e.tokenId === nft?.token_id //&&
+        // e.sold === false &&
+        // e.confirmed === true
     );
     return result;
   };
@@ -960,7 +289,7 @@ function NFTBalance() {
     const result = fetchMarketItems?.find(
       (e) =>
         
-        e.tokenId === nft?.tokenIdNumber.toString()
+        e.tokenId === nft?.tokenIdNumber.toString()  
     );
     return {...nft,...result};
   };
@@ -970,13 +299,14 @@ function NFTBalance() {
   let filteredOnSale = NFTs.map(x=>getMarketItemById(x));
 
   let NFTBalanceOrdered = null;
-  if (NFTBalance)
-   NFTBalanceOrdered= NFTBalance.sort((a, b) =>  a.name.localeCompare( b.name)); 
-
+  if (NFTBalance) {
+   NFTBalanceOrdered= NFTBalance.sort((a, b) =>  a.name.localeCompare( b.name))
+   NFTBalanceOrdered = NFTBalanceOrdered.filter(x=>getMarketItem(x)==null)
+  }
   return (
     <>
       <div style={{display: 'block'}}>
-      <h3 style={styles.NFTs}>My tokens</h3>
+      {NFTBalanceOrdered && NFTBalanceOrdered.length>0 &&(<h2 style={styles.NFTs}>My tokens</h2>)}
       <div style={styles.NFTs}>
         {contractABIJson.noContractDeployed && (
           <>
@@ -998,7 +328,7 @@ function NFTBalance() {
         )}
         {NFTBalanceOrdered &&
           NFTBalanceOrdered.map((nft, index) => (
-            <Card
+            <Card key={index}
               hoverable
               actions={[
                 <Tooltip title="View On Blockexplorer">
@@ -1033,7 +363,7 @@ function NFTBalance() {
           ))}
       </div>
 
-      <h3 style={styles.NFTs}> My Tokens on Sale</h3>
+      {filteredOnSale && filteredOnSale.length>0 && (<h2 style={styles.NFTs}> My Tokens on Sale</h2>)}
       <div style={styles.NFTs}>
       
       
@@ -1076,6 +406,7 @@ function NFTBalance() {
       </div>
       </div>
       <Modal
+        key="modalSell"
         title={`List ${nftToSend?.name} #${nftToSend?.token_id} For Sale`}
         visible={visible}
         onCancel={() => setVisibility(false)}
@@ -1085,9 +416,9 @@ function NFTBalance() {
           <Button onClick={() => setVisibility(false)}>
             Cancel
           </Button>,
-          <Button onClick={() => approveAll(nftToSend)} type="primary">
-            Approve
-          </Button>,
+          // <Button onClick={() => approveAll(nftToSend)} type="primary">
+          //   Approve
+          // </Button>,
           <Button onClick={() => list(nftToSend, price)} type="primary">
             List
           </Button>
