@@ -15,15 +15,15 @@ const styles = {
 function NFTMarketTransactions() {
   const { walletAddress } = useMoralisDapp();
   const { Moralis } = useMoralis();
-  const queryItemImages = useMoralisQuery("ItemImages");
-  const fetchItemImages = JSON.parse(
-    JSON.stringify(queryItemImages.data, [
-      "nftContract",
-      "tokenId",
-      "name",
-      "image",
-    ])
-  );
+  //const queryItemImages = useMoralisQuery("ItemImages");
+  // const fetchItemImages = JSON.parse(
+  //   JSON.stringify(queryItemImages.data, [
+  //     "nftContract",
+  //     "tokenId",
+  //     "name",
+  //     "image",
+  //   ])
+  // );
   const queryMarketItems = useMoralisQuery("MarketItemsii");
   const fetchMarketItems = JSON.parse(
     JSON.stringify(queryMarketItems.data, [
@@ -44,23 +44,23 @@ function NFTMarketTransactions() {
       a.updatedAt < b.updatedAt ? 1 : b.updatedAt < a.updatedAt ? -1 : 0
     );
 
-  function getImage(addrs, id) {
-    const img = fetchItemImages.find(
-      (element) =>
-        element.nftContract === addrs &&
-        element.tokenId === id
-    );
-    return img?.image;
-  }
+  // function getImage(addrs, id) {
+  //   const img = fetchItemImages.find(
+  //     (element) =>
+  //       element.nftContract === addrs &&
+  //       element.tokenId === id
+  //   );
+  //   return img?.image;
+  // }
 
-  function getName(addrs, id) {
-    const nme = fetchItemImages.find(
-      (element) =>
-        element.nftContract === addrs &&
-        element.tokenId === id
-    );
-    return nme?.name;
-  }
+  // function getName(addrs, id) {
+  //   const nme = fetchItemImages.find(
+  //     (element) =>
+  //       element.nftContract === addrs &&
+  //       element.tokenId === id
+  //   );
+  //   return nme?.name;
+  // }
 
 
 
@@ -75,7 +75,7 @@ function NFTMarketTransactions() {
       key: "item",
       render: (text, record) => (
         <Space size="middle">
-          <img src={getImage(record.collection, record.item)} style={{ width: "40px", borderRadius:"4px"}} />
+         
           <span>#{record.item}</span>
         </Space>
       ),
@@ -85,7 +85,7 @@ function NFTMarketTransactions() {
       key: "collection",
       render: (text, record) => (
         <Space size="middle">
-          <span>{getName(record.collection, record.item)}</span>
+          <span></span>
         </Space>
       ),
     },
@@ -137,7 +137,7 @@ function NFTMarketTransactions() {
     item: item.tokenId,
     tags: [item.seller, item.sold],
     //todo BN
-    price: item.price / ("1e" + 18)
+    price: Moralis.Units.FromWei(item.price)
   }));
 
   return (
