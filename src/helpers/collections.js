@@ -3,7 +3,7 @@ export const networkCollections = {
     //Add Your Collections here
     {
       image:
-        "https://lh3.googleusercontent.com/BWCni9INm--eqCK800BbRkL10zGyflxfPwTHt4XphMSWG3XZvPx1JyGdfU9vSor8K046DJg-Q8Y4ioUlWHiCZqgR_L00w4vcbA-w=s0",
+        "https://lh3.googleusercontent.com/oSFDNqUoLgYZYE0ejnY6Rsbia8m3KcKjXoEiF51NMeMfk8vNF_grEpztPfKFhjLuAGQkSGBGQ8AQ0w=w1920-h560",
       name: "Cryptonium bars",
       addrs: "0x3957a4049E0941bC54d048d5d7a53584be367e23",
     },
